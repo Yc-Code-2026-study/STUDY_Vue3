@@ -1,81 +1,218 @@
+<script setup lang="ts">
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import { CURRENT_USER } from './mock/items'
+
+const route = useRoute()
+const router = useRouter()
+
+const navs = [
+  { name: 'home', label: '逛集市', to: '/' },
+  { name: 'mine', label: '我的闲置', to: '/mine' },
+]
+</script>
+
 <template>
-  <div class="container">
-    <h1>🎓 校园二手交易聚合搜索</h1>
-    <p class="subtitle">聚合三大QQ频道，AI帮你找好物，过滤已售出信息</p>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <RouterLink to="/" class="brand">
+        <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+          <rect width="64" height="64" rx="14" fill="#2F5BFF" />
+          <path d="M16 26l16-7 16 7-16 7-16-7z" fill="#fff" />
+          <path
+            d="M22 31v9c0 3 4.5 5 10 5s10-2 10-5v-9"
+            fill="none"
+            stroke="#fff"
+            stroke-width="3.2"
+            stroke-linecap="round"
+          />
+        </svg>
+        <span class="brand__text">
+          <b>校集</b>
+          <small>QQ 校园频道 · 二手集市</small>
+        </span>
+      </RouterLink>
 
-    <!-- 搜索框 -->
-    <div class="search-box">
-      <input 
-        type="text" 
-        v-model="searchQuery" 
-        placeholder="输入你想找的物品（如：高数、自行车）..." 
-      />
-      <button @click="search">搜索</button>
-    </div>
+      <nav class="nav">
+        <RouterLink
+          v-for="nav in navs"
+          :key="nav.name"
+          :to="nav.to"
+          class="nav__item"
+          :class="{ 'nav__item--on': route.name === nav.name }"
+        >
+          {{ nav.label }}
+        </RouterLink>
+      </nav>
 
-    <!-- 搜索结果列表 -->
-    <div class="results">
-      <div v-for="item in results" :key="item.id" class="card">
-        <div class="card-header">
-          <h3>{{ item.title }}</h3>
-          <span class="price">{{ item.price }}</span>
-        </div>
-        <p class="info">📍 {{ item.channel }} | 发布人: {{ item.author }} | 时间: {{ item.publish_time }}</p>
-        <p class="raw-text">{{ item.raw_text }}</p>
-        <div class="status" :class="item.status === '在售' ? 'selling' : 'sold'">
-          {{ item.status }}
+      <div class="header-right">
+        <button class="btn btn--primary" @click="router.push('/publish')">发布闲置</button>
+        <div class="user">
+          <span class="user__avatar">{{ CURRENT_USER.nickname.slice(0, 1) }}</span>
+          <span class="user__name">{{ CURRENT_USER.nickname }}</span>
         </div>
       </div>
     </div>
-  </div>
+  </header>
+
+  <main class="page">
+    <RouterView v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" :key="route.fullPath" />
+      </transition>
+    </RouterView>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <span>数据来源：QQ 校园频道公开帖子（当前为本地示例数据）</span>
+      <span>仅限校内当面交易 · 请勿轻信线上转账</span>
+    </div>
+  </footer>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-// 导入刚才改好的 js 文件
-import { mockData } from './mock_data.js'
+<style scoped>
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
 
-const searchQuery = ref('')
-const allData = ref(mockData)
-const results = ref(mockData)
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  height: 64px;
+}
 
-const search = () => {
-  if (!searchQuery.value) {
-    results.value = allData.value
-    return
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__mark {
+  width: 32px;
+  height: 32px;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brand__text b {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.brand__text small {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.nav {
+  display: flex;
+  gap: 4px;
+  margin-right: auto;
+}
+
+.nav__item {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.nav__item:hover {
+  background: #f2f3f7;
+  color: var(--ink);
+}
+
+.nav__item--on {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user__avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.user__name {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.page {
+  min-height: calc(100vh - 200px);
+  padding: 26px 0 56px;
+}
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.site-footer__inner {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.16s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 720px) {
+  .nav {
+    display: none;
   }
-  const keyword = searchQuery.value.toLowerCase()
-  results.value = allData.value.filter(item => 
-    item.title.toLowerCase().includes(keyword) || 
-    item.raw_text.toLowerCase().includes(keyword)
-  )
-}
-</script>
 
-<style>
-/* 简单美化一下页面 */
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: sans-serif;
+  .user__name {
+    display: none;
+  }
+
+  .header-right {
+    margin-left: auto;
+  }
+
+  .site-footer__inner {
+    flex-direction: column;
+    gap: 4px;
+  }
 }
-.subtitle { color: #666; margin-bottom: 20px; }
-.search-box { display: flex; gap: 10px; margin-bottom: 20px; }
-.search-box input {
-  flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px;
-}
-.search-box button {
-  padding: 12px 24px; background-color: #42b883; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;
-}
-.card {
-  border: 1px solid #eee; border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;
-}
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.price { color: #e74c3c; font-size: 20px; font-weight: bold; }
-.info { color: #888; font-size: 14px; margin: 8px 0; }
-.raw-text { color: #333; background: #f9f9f9; padding: 10px; border-radius: 4px; font-size: 14px; }
-.status { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-.selling { background: #e8f8f5; color: #1abc9c; }
-.sold { background: #fce4ec; color: #e91e63; opacity: 0.6; }
 </style>
